@@ -17,24 +17,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func arePodsOfIPFamily(agentPods []*corev1.Pod, ipFamily string) bool {
-	for _, p := range agentPods {
-		if len(p.Status.PodIPs) == 1 {
-			podIP := net.ParseIP(p.Status.PodIPs[0].IP)
-			if podIP == nil {
-				return false
-			}
-			if ipFamily == "IPv4" && podIP.To4() == nil {
-				return false
-			}
-			if ipFamily == "IPv6" && podIP.To4() != nil {
-				return false
-			}
-		}
-	}
-	return true
-}
-
 func BuildClusterConfig(
 	log logrus.FieldLogger,
 	nodes []*corev1.Node,
@@ -46,10 +28,6 @@ func BuildClusterConfig(
 		InternalKubeAPIServer: internalKubeAPIServer,
 		KubeAPIServer:         kubeAPIServer,
 	}
-
-	// Determine the IP family of the pods once
-	arePodsIPv4 := arePodsOfIPFamily(agentPods, "IPv4")
-	arePodsIPv6 := arePodsOfIPFamily(agentPods, "IPv6")
 
 	nodeNames := common.StringSet{}
 	for _, n := range nodes {
@@ -65,9 +43,9 @@ func BuildClusterConfig(
 				if ip == nil {
 					continue
 				}
-				if ip.To4() != nil && arePodsIPv4 {
+				if ip.To4() != nil {
 					ips = append(ips, addr.Address)
-				} else if ip.To4() == nil && arePodsIPv6 {
+				} else if ip.To4() == nil {
 					ipsV6 = append(ipsV6, addr.Address)
 				}
 			}

@@ -184,18 +184,6 @@ var _ = Describe("BuildClusterConfig", func() {
 					NodeName: "node1",
 				},
 			},
-			{
-				Status: corev1.PodStatus{
-					Phase: corev1.PodRunning,
-					PodIPs: []corev1.PodIP{
-						{IP: "10.0.0.1"},
-						{IP: "2001:db8::2"},
-					},
-				},
-				Spec: corev1.PodSpec{
-					NodeName: "node1",
-				},
-			},
 		}
 		internalKubeAPIServer := &config.Endpoint{
 			Hostname: "internal-api-server",
@@ -268,5 +256,6 @@ var _ = Describe("BuildClusterConfig", func() {
 		Expect(slices.Contains(clusterConfig.Nodes[0].InternalIPsV6, ("2001:db8::1"))).To(BeTrue())
 		Expect(clusterConfig.PodEndpoints[0].Nodename).To(Equal("node1"))
 		Expect(clusterConfig.PodEndpoints[0].PodIP).To(Equal("10.0.0.1"))
+		Expect(clusterConfig.PodEndpointsV6[0].PodIP).To(Equal("2001:db8::2"))
 	})
 })
